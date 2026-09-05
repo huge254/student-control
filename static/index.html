@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>学生管理系统 - 登录</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="login-page">
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="login-head">
+        <div class="logo-badge">学</div>
+        <h1>学生管理系统</h1>
+        <p>教师 / 学生双角色登录</p>
+      </div>
+      <div class="login-body">
+        <div class="field">
+          <label for="username">账号</label>
+          <input id="username" autocomplete="username" placeholder="请输入账号">
+        </div>
+        <div class="field">
+          <label for="password">密码</label>
+          <input id="password" type="password" autocomplete="current-password" placeholder="请输入密码">
+        </div>
+        <div class="login-btns">
+          <button class="btn teacher" id="teacherLoginBtn">教 师 登 录</button>
+          <button class="btn student" id="studentLoginBtn">学 生 登 录</button>
+        </div>
+        <div class="login-msg" id="loginMsg"></div>
+      </div>
+    </div>
+    <div class="login-tip">
+      默认账号：管理员 admin / admin123　教师 t001 / 123456<br>
+      学生 2024001 / 123456
+    </div>
+  </div>
+  <script src="js/api.js"></script>
+  <script src="js/login.js"></script>
+</body>
+</html>

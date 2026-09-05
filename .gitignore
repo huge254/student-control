@@ -1,0 +1,16 @@
+# 环境与密钥（切勿提交）
+.env
+
+# 运行数据与日志（含账号密码哈希，切勿提交）
+data.json
+logs/
+
+# Python 缓存与虚拟环境
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# IDE
+.vscode/
+.idea/

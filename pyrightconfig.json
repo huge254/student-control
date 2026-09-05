@@ -1,0 +1,23 @@
+{
+  "typeCheckingMode": "basic",
+  "reportMissingImports": false,
+  "reportMissingModuleSource": false,
+  "reportMissingTypeStubs": false,
+  "reportUnknownMemberType": false,
+  "reportUnknownParameterType": false,
+  "reportUnknownVariableType": false,
+  "reportUnknownArgumentType": false,
+  "reportUnknownLambdaType": false,
+  "reportAny": false,
+  "reportUnannotatedClassAttribute": false,
+  "reportUnusedCallResult": false,
+  "reportMissingParameterType": false,
+  "reportImplicitRelativeImport": false,
+  "reportUnusedParameter": false,
+  "reportMissingTypeArgument": false,
+  "reportOptionalSubscript": false,
+  "reportArgumentType": false,
+  "reportUnusedVariable": false,
+  "reportImplicitStringConcatenation": false,
+  "reportUnusedImport": true
+}

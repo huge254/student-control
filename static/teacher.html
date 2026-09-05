@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>教师端 - 学生管理系统</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">
+      <div class="brand-mark">学</div>
+      <div>
+        <div class="brand-name">学生管理系统</div>
+        <div class="brand-sub">教师端</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <span id="whoami"></span>
+      <button class="btn ghost" id="myPwdBtn">修改密码</button>
+      <button class="btn ghost" onclick="logout()">退出登录</button>
+    </div>
+  </header>
+
+<main>
+  <div class="overview-strip" id="overviewStrip">
+    <div class="ov-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="4"/></svg>
+      <div><b id="ovStudents">-</b><span>在读学生</span></div>
+    </div>
+    <div class="ov-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h.01M9 13h.01M9 17h.01M15 9h.01M15 13h.01M15 17h.01"/></svg>
+      <div><b id="ovClasses">-</b><span>班级数量</span></div>
+    </div>
+    <div class="ov-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3v18h18"/><path d="m7 14 4-4 3 3 5-6"/></svg>
+      <div><b id="ovAvg">-</b><span>全科平均分</span></div>
+    </div>
+    <div class="ov-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+      <div><b id="ovPending">-</b><span>待审核申请</span></div>
+    </div>
+  </div>
+
+  <div class="card toolbar">
+    <div class="search-box stu-ui">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="keyword" placeholder="搜索学号 / 姓名 / 班级">
+    </div>
+    <button class="btn primary stu-ui" id="searchBtn">查询</button>
+    <button class="btn outline stu-ui" id="refreshBtn">刷新</button>
+    <div class="spacer"></div>
+    <button class="btn teacher admin-only stu-ui" id="addBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>添加学生
+    </button>
+    <button class="btn teacher admin-only stu-ui" id="editBtn">修改信息</button>
+    <button class="btn teacher admin-only stu-ui" id="gradeBtn">编辑成绩</button>
+    <button class="btn teacher admin-only stu-ui" id="stuResetPwdBtn">重置密码</button>
+    <button class="btn danger admin-only stu-ui" id="delBtn">删除学生</button>
+    <span class="divider admin-only stu-ui"></span>
+    <button class="btn outline admin-only" id="requestBtn">审核申请</button>
+    <button class="btn outline" id="statsBtn">数据统计</button>
+    <button class="btn outline" id="exportBtn">导出表格</button>
+  </div>
+
+  <!-- 页签（仅管理员可见） -->
+  <div class="page-tabs admin-only">
+    <button class="page-tab active" data-page="students">学生信息</button>
+    <button class="page-tab" data-page="teachers">教师信息</button>
+  </div>
+
+  <!-- 学生面板 -->
+  <div class="card page-panel" id="panel-students">
+    <div class="card-head">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="4"/><path d="M21 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      学生列表
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead id="thead"></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 教师面板（仅管理员可见） -->
+  <div class="card page-panel admin-only" id="panel-teachers" style="display:none">
+    <div class="card-head">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a7 7 0 0 1 14 0v1"/></svg>
+      教师账号
+      <div style="margin-left:auto;display:flex;gap:8px">
+        <button class="btn teacher" id="addTeacherBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>添加教师
+        </button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>工号</th><th>姓名</th><th>角色</th><th>操作</th></tr></thead>
+        <tbody id="teacherBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 添加 / 修改学生信息 -->
+  <dialog id="formDialog">
+    <h3 id="formTitle">添加学生<button class="dlg-close" data-close title="关闭 (Esc)">&times;</button></h3>
+    <div class="dialog-body">
+      <div class="field" id="rowId"><label>学号 *</label><input id="fId" placeholder="如 2024004"></div>
+      <div class="field"><label>姓名 *</label><input id="fName"></div>
+      <div class="field"><label>性别</label>
+        <select id="fGender"><option>男</option><option>女</option></select>
+      </div>
+      <div class="field"><label>班级</label><input id="fClass"></div>
+      <div class="field"><label>电话</label><input id="fPhone"></div>
+      <div class="field" id="rowPwd"><label>初始密码 *</label><input id="fPwd" type="password"></div>
+      <div class="actions">
+        <button class="btn primary" id="saveFormBtn">保存</button>
+        <button class="btn gray" id="cancelFormBtn">取消</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- 编辑成绩 -->
+  <dialog id="gradeDialog">
+    <h3 id="gradeTitle">编辑成绩<button class="dlg-close" data-close title="关闭 (Esc)">&times;</button></h3>
+    <div class="dialog-body">
+      <div id="gradeList"></div>
+      <div class="add-grade">
+        <input id="newSubject" placeholder="新科目">
+        <input id="newScore" type="number" min="0" max="100" value="0">
+        <button class="btn student" id="addSubjectBtn">添加</button>
+      </div>
+      <div class="actions">
+        <button class="btn primary" id="saveGradeBtn">保存</button>
+        <button class="btn gray" id="cancelGradeBtn">取消</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- 账号管理（仅管理员） -->
+
+  <!-- 添加教师 -->
+  <dialog id="teacherFormDialog">
+    <h3>添加教师<button class="dlg-close" data-close title="关闭 (Esc)">&times;</button></h3>
+    <div class="dialog-body">
+      <div class="field"><label>工号 *</label><input id="tId" placeholder="如 t002"></div>
+      <div class="field"><label>姓名 *</label><input id="tName"></div>
+      <div class="field"><label>初始密码 *</label><input id="tPwd" type="password"></div>
+      <div class="actions">
+        <button class="btn primary" id="saveTeacherBtn">保存</button>
+        <button class="btn gray" id="cancelTeacherBtn">取消</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- 审核学生修改申请（仅管理员） -->
+  <dialog id="requestDialog" class="wide">
+    <h3>学生修改申请审核<button class="dlg-close" data-close title="关闭 (Esc)">&times;</button></h3>
+    <div class="dialog-body">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>申请号</th><th>学号</th><th>姓名</th><th>修改字段</th>
+                <th>原值</th><th>新值</th><th>状态</th><th>时间</th><th>操作</th></tr>
+          </thead>
+          <tbody id="reqBody"></tbody>
+        </table>
+      </div>
+      <div class="actions">
+        <button class="btn gray" data-close>关闭</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- 数据统计 -->
+  <dialog id="statsDialog" class="wide">
+    <h3>数据统计<button class="dlg-close" data-close title="关闭 (Esc)">&times;</button></h3>
+    <div class="dialog-body">
+      <div class="stat-cards">
+        <div class="stat-card"><span class="num" id="statStudents">-</span><span class="lbl">学生总数</span></div>
+        <div class="stat-card"><span class="num" id="statTeachers">-</span><span class="lbl">教师账号数</span></div>
+        <div class="stat-card"><span class="num" id="statPending">-</span><span class="lbl">待审核申请</span></div>
+      </div>
+      <div class="section-title">各班人数分布</div>
+      <div id="classBars"></div>
+      <div class="section-title">各科平均分</div>
+      <div id="avgBars"></div>
+      <div class="actions">
+        <button class="btn gray" data-close>关闭</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- 修改密码（当前登录用户自己） -->
+  <dialog id="myPwdDialog">
+    <h3>修改我的密码<button class="dlg-close" data-close title="关闭 (Esc)">&times;</button></h3>
+    <div class="dialog-body">
+      <div class="field"><label>旧密码 *</label><input id="oldPwd" type="password"></div>
+      <div class="field"><label>新密码 *</label><input id="newPwd" type="password" placeholder="至少 4 位"></div>
+      <div class="field"><label>确认新密码 *</label><input id="newPwd2" type="password"></div>
+      <div class="actions">
+        <button class="btn primary" id="saveMyPwdBtn">保存</button>
+        <button class="btn gray" id="cancelMyPwdBtn">取消</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- 重置他人密码（管理员） -->
+  <dialog id="resetPwdDialog">
+    <h3 id="resetPwdTitle">重置密码<button class="dlg-close" data-close title="关闭 (Esc)">&times;</button></h3>
+    <div class="dialog-body">
+      <div class="field"><label>新密码 *</label><input id="resetPwdInput" type="password" placeholder="至少 4 位"></div>
+      <div class="actions">
+        <button class="btn primary" id="saveResetPwdBtn">重置</button>
+        <button class="btn gray" id="cancelResetPwdBtn">取消</button>
+      </div>
+    </div>
+  </dialog>
+</main>
+
+  <script src="js/api.js"></script>
+  <script src="js/teacher.js"></script>
+</body>
+</html>
