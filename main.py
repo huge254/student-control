@@ -139,6 +139,9 @@ class LoginBody(BaseModel):
     role: Literal["teacher", "student"]
 
 
+Score = Annotated[int, Field(ge=0, le=100)]
+
+
 class StudentCreate(BaseModel):
     id: str = Field(min_length=1, max_length=20)
     name: str = Field(min_length=1, max_length=20)
@@ -146,6 +149,7 @@ class StudentCreate(BaseModel):
     class_name: str = Field(default="", max_length=32)
     phone: str = Field(default="", max_length=20)
     password: str = Field(min_length=4, max_length=64)
+    grades: dict[str, Score] = Field(default_factory=dict)  # 可选：添加时一并录入成绩
 
 
 class StudentUpdate(BaseModel):
@@ -153,9 +157,6 @@ class StudentUpdate(BaseModel):
     gender: Literal["男", "女"] | None = None
     class_name: str | None = Field(default=None, max_length=32)
     phone: str | None = Field(default=None, max_length=20)
-
-
-Score = Annotated[int, Field(ge=0, le=100)]
 
 
 class GradesBody(BaseModel):
@@ -228,7 +229,7 @@ def get_student(sid: str, user: dict = Depends(current_user)):
 def add_student(body: StudentCreate, _: dict = Depends(require_admin)):
     success, msg = db.add_student(body.id.strip(), body.name.strip(), body.gender,
                                   body.class_name.strip(), body.phone.strip(),
-                                  body.password)
+                                  body.password, grades=body.grades or None)
     return ok(msg=msg) if success else fail(400, msg)
 
 

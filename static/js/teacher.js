@@ -18,6 +18,7 @@ function on(id, fn) {
 let students = [];
 let selectedId = null;
 let gradeDraft = {};
+let newGradeDraft = {};   // 添加学生弹窗中暂存的成绩
 
 /* ---------- 数据加载与渲染（所有角色） ---------- */
 async function load() {
@@ -46,8 +47,13 @@ async function updateOverview() {
   }
 }
 
+/* 系统全部科目（取所有学生科目的并集，与表格列一致） */
+function allSubjects() {
+  return [...new Set(students.flatMap(s => Object.keys(s.grades)))].sort();
+}
+
 function render() {
-  const subjects = [...new Set(students.flatMap(s => Object.keys(s.grades)))].sort();
+  const subjects = allSubjects();
   $("thead").innerHTML = "<tr>" +
     ["学号", "姓名", "性别", "班级", "电话", ...subjects, "总分"]
       .map(h => `<th>${esc(h)}</th>`).join("") + "</tr>";
@@ -80,15 +86,42 @@ function openForm(s) {
   $("formTitle").textContent = s ? "修改学生信息" : "添加学生";
   $("rowId").style.display = s ? "none" : "";
   $("rowPwd").style.display = s ? "none" : "";
+  $("rowGrades").style.display = s ? "none" : "";
   $("fId").value = s ? s.id : "";
   $("fName").value = s ? s.name : "";
   $("fGender").value = s ? s.gender : "男";
   $("fClass").value = s ? s.class_name : "";
   $("fPhone").value = s ? s.phone : "";
   $("fPwd").value = "";
+  // 添加模式：按系统全部科目各生成一条成绩，默认 0 分，直接填分即可
+  newGradeDraft = s ? {} : Object.fromEntries(allSubjects().map(sub => [sub, 0]));
+  renderNewGrades();
   $("formDialog").dataset.editId = s ? s.id : "";
   $("formDialog").showModal();
 }
+
+/* 添加学生弹窗内的成绩录入区（可选） */
+function renderNewGrades() {
+  $("newGradeList").innerHTML = Object.keys(newGradeDraft).length
+    ? Object.entries(newGradeDraft).map(([sub, score]) =>
+        `<div class="grade-row"><span>${esc(sub)}</span>` +
+        `<input type="number" min="0" max="100" value="${score}" data-sub="${esc(sub)}">` +
+        `<button class="btn danger" data-del="${esc(sub)}">删</button></div>`).join("")
+    : '<div style="color:#8a94a6;padding:6px 0">（可不填，保存学生后再补录）</div>';
+  $("newGradeList").querySelectorAll("[data-del]").forEach(btn =>
+    btn.onclick = () => { delete newGradeDraft[btn.dataset.del]; renderNewGrades(); });
+}
+
+on("fAddSubjectBtn", () => {
+  const sub = $("fNewSubject").value.trim();
+  if (!sub) { alert("请填写科目名称"); return; }
+  if (sub in newGradeDraft) { alert("该科目已存在"); return; }
+  const score = Number($("fNewScore").value);
+  if (!(score >= 0 && score <= 100)) { alert("分数必须在 0~100 之间"); return; }
+  newGradeDraft[sub] = score;
+  $("fNewSubject").value = "";
+  renderNewGrades();
+});
 
 on("addBtn", () => openForm(null));
 on("editBtn", () => { const s = selectedStudent(); if (s) openForm(s); });
@@ -109,8 +142,15 @@ on("saveFormBtn", async () => {
   } else {
     const id = $("fId").value.trim(), pwd = $("fPwd").value;
     if (!id || !pwd) { alert("学号和初始密码不能为空"); return; }
+    // 收集添加弹窗内录入的成绩（用户在输入框里改过的以输入框为准）
+    const grades = {};
+    for (const input of $("newGradeList").querySelectorAll("input[data-sub]")) {
+      const v = Number(input.value);
+      if (!(v >= 0 && v <= 100)) { alert(`「${input.dataset.sub}」分数必须在 0~100 之间`); return; }
+      grades[input.dataset.sub] = v;
+    }
     res = await api("/students",
-      { method: "POST", body: JSON.stringify({ id, password: pwd, ...common }) });
+      { method: "POST", body: JSON.stringify({ id, password: pwd, grades, ...common }) });
   }
   alert(res.msg);
   if (res.code === 200) { $("formDialog").close(); load(); }
@@ -131,7 +171,8 @@ on("delBtn", async () => {
 on("gradeBtn", () => {
   const s = selectedStudent();
   if (!s) return;
-  gradeDraft = { ...s.grades };
+  // 先按全部科目以 0 分铺底，再用该学生已有成绩覆盖（自动匹配对应科目）
+  gradeDraft = { ...Object.fromEntries(allSubjects().map(sub => [sub, 0])), ...s.grades };
   $("gradeTitle").textContent = `编辑成绩 - ${s.name}（${s.id}）`;
   $("gradeDialog").dataset.sid = s.id;
   renderGrades();

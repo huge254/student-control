@@ -56,12 +56,17 @@ check("学生列表", st == 200 and len(r["data"]) == 3 and r["data"][0]["name"]
 st, r = call("/students?keyword=" + urllib.parse.quote("王五"), token=admin_token)
 check("关键词搜索", st == 200 and len(r["data"]) == 1, r)
 
-# 6. 新增学生
+# 6. 新增学生（附带成绩，一步保存）
 st, r = call("/students", "POST",
              {"id": "2024004", "name": "赵六", "gender": "女",
-              "class_name": "网络2403", "phone": "13800000004", "password": "123456"},
+              "class_name": "网络2403", "phone": "13800000004", "password": "123456",
+              "grades": {"语文": 70, "数学": 82}},
              token=admin_token)
 check("新增学生", st == 200 and r["code"] == 200, r)
+
+st, r = call("/students/2024004", token=admin_token)
+check("新增时成绩一并保存", st == 200 and r["data"]["grades"] == {"语文": 70, "数学": 82}
+      and r["data"]["total"] == 152, r)
 
 # 7. 重复学号被拒
 st, r = call("/students", "POST",

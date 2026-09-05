@@ -114,6 +114,15 @@
       <div class="field"><label>班级</label><input id="fClass"></div>
       <div class="field"><label>电话</label><input id="fPhone"></div>
       <div class="field" id="rowPwd"><label>初始密码 *</label><input id="fPwd" type="password"></div>
+      <div class="field" id="rowGrades">
+        <label>成绩（全部科目默认 0，直接填分即可）</label>
+        <div id="newGradeList"></div>
+        <div class="add-grade">
+          <input id="fNewSubject" placeholder="科目，如 语文">
+          <input id="fNewScore" type="number" min="0" max="100" value="0">
+          <button class="btn student" id="fAddSubjectBtn">添加科目</button>
+        </div>
+      </div>
       <div class="actions">
         <button class="btn primary" id="saveFormBtn">保存</button>
         <button class="btn gray" id="cancelFormBtn">取消</button>
